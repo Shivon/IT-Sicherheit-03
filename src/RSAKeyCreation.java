@@ -50,7 +50,12 @@ class RSAKeyCreation {
     privateKeyFile.writeInt(privateKeyBytes.length);
     publicKeyFile.writeInt(publicKeyBytes.length);
 
-    privateKeyFile.write((new PKCS8EncodedKeySpec(privateKeyBytes)).getEncoded());
-    publicKeyFile.write((new X509EncodedKeySpec(publicKeyBytes)).getEncoded());
+    // format already PKCS8
+    privateKeyFile.write(privateKeyBytes);
+    // format already X.509
+    publicKeyFile.write(publicKeyBytes);
+
+    privateKeyFile.close();
+    publicKeyFile.close();
   }
 }

@@ -2,6 +2,8 @@ import javax.crypto.*;
 import java.io.*;
 import java.security.*;
 import java.security.spec.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 class SSF {
@@ -10,6 +12,7 @@ class SSF {
   private SecretKey aesKey;
   private byte[] signatureBytesSecretKey;
   private byte[] encryptedSecretKey;
+  private byte[] encryptedInputFile;
 
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
@@ -119,11 +122,33 @@ class SSF {
     try {
       Cipher cipher = Cipher.getInstance("RSA");
       cipher.init(Cipher.ENCRYPT_MODE, publicRSAKey);
-      encryptedSecretKey = cipher.doFinal(aesKey.getEncoded());
+      byte[] firstEncryptedBlock = cipher.update(aesKey.getEncoded());
+      encryptedSecretKey = concat(firstEncryptedBlock, cipher.doFinal(aesKey.getEncoded()));
     } catch (NoSuchAlgorithmException e) {
       throw new Error("RSA not found for initializing cipher", e);
     } catch (InvalidKeyException e) {
       throw new Error("PublicRSAKey invalid", e);
     }
+  }
+
+  private void encryptFile() throws NoSuchPaddingException {
+    try {
+      Cipher cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
+      cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+      //cipher.update();
+
+    } catch (NoSuchAlgorithmException e) {
+      throw new Error("AES/CTR/PKCS5Padding not found for initializing cipher", e);
+    } catch (InvalidKeyException e) {
+      throw new Error("Secret aesKey invalid", e);
+    }
+  }
+
+  private byte[] concat(byte[] firstByteArray, byte[] secondByteArray) {
+    byte[] resultArray = new byte[firstByteArray.length + secondByteArray.length];
+    System.arraycopy(firstByteArray, 0, resultArray, 0, firstByteArray.length);
+    System.arraycopy(secondByteArray, 0, resultArray, firstByteArray.length, secondByteArray.length);
+
+    return resultArray;
   }
 }

@@ -1,4 +1,5 @@
 *.class
+/*/*.class
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
@@ -17,4 +18,6 @@ IT-Sicherheit-03.iml
 /out
 /build
 /*.iml
-/*/*.class
+
+/*/*.prv
+/*/*.pub

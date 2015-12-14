@@ -15,7 +15,7 @@ class RSAKeyCreation {
   }
 
   public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-    if (args.length == 0 || args.length > 1) {
+    if (args.length != 1) {
       System.out.println("Usage: java RSAKeyCreation yourName");
       return;
     }

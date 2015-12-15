@@ -2,8 +2,6 @@ import javax.crypto.*;
 import java.io.*;
 import java.security.*;
 import java.security.spec.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 
 class SSF {
@@ -13,22 +11,32 @@ class SSF {
   private byte[] signatureBytesSecretKey;
   private byte[] encryptedSecretKey;
   private byte[] encryptedInputFile;
+  private byte[] encryptedAlgorithmParams;
+
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 2) {
-      System.out.println("Usage: java SSF privateKey.prv publicKey.pub inputString outputString.ssf");
+    if (args.length != 4) {
+      System.out.println("Usage: java SSF privateKey.prv publicKey.pub inputFile outputFileName.ssf");
       return;
     }
 
     SSF ssf = new SSF();
+    // get privateKey from file
     ssf.readKeyFromFile(args[0]);
+    // get publicKey from file
     ssf.readKeyFromFile(args[1]);
     ssf.generateAESKey();
     ssf.signSecretKey();
     ssf.encryptSecretKey();
+    // generate encrypted input file
+    ssf.encryptFile(args[2]);
+    // generate encrypted output file with signature
+    ssf.generateSignedAndEncryptedFile(args[3]);
 
     System.out.println("public key: " + ssf.publicRSAKey);
     System.out.println("private key: " + ssf.privateRSAKey);
+    System.out.println("encrypted secret key: " + ssf.encryptedSecretKey.toString());
+    System.out.println("encrypted input file: " + ssf.encryptedInputFile.toString());
   }
 
 
@@ -122,8 +130,9 @@ class SSF {
     try {
       Cipher cipher = Cipher.getInstance("RSA");
       cipher.init(Cipher.ENCRYPT_MODE, publicRSAKey);
-      byte[] firstEncryptedBlock = cipher.update(aesKey.getEncoded());
-      encryptedSecretKey = concat(firstEncryptedBlock, cipher.doFinal(aesKey.getEncoded()));
+//      byte[] firstEncryptedBlock = cipher.update(aesKey.getEncoded());
+//      encryptedSecretKey = concat(firstEncryptedBlock, cipher.doFinal(aesKey.getEncoded()));
+      encryptedSecretKey = cipher.update(aesKey.getEncoded());
     } catch (NoSuchAlgorithmException e) {
       throw new Error("RSA not found for initializing cipher", e);
     } catch (InvalidKeyException e) {
@@ -131,18 +140,33 @@ class SSF {
     }
   }
 
-  private void encryptFile() throws NoSuchPaddingException {
+
+  private void encryptFile(String inputFilePath) throws NoSuchPaddingException {
+    encryptedInputFile = new byte[0];
+
     try {
+      FileInputStream inputStream = new FileInputStream(inputFilePath);
       Cipher cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
       cipher.init(Cipher.ENCRYPT_MODE, aesKey);
-      //cipher.update();
 
+      byte[] buffer = new byte[16];
+      while ((inputStream.read(buffer)) > 0) {
+        byte[] encryptedInputPart = cipher.update(buffer);
+        // TODO: check if PKCS5Padding automatically fills up too short blocks
+        encryptedInputFile = concat(encryptedInputFile, encryptedInputPart);
+      }
+
+      inputStream.close();
+      encryptedAlgorithmParams = cipher.getParameters().getEncoded();
     } catch (NoSuchAlgorithmException e) {
       throw new Error("AES/CTR/PKCS5Padding not found for initializing cipher", e);
     } catch (InvalidKeyException e) {
       throw new Error("Secret aesKey invalid", e);
+    } catch (IOException e) {
+      throw new Error("Input file not found or invalid.", e);
     }
   }
+
 
   private byte[] concat(byte[] firstByteArray, byte[] secondByteArray) {
     byte[] resultArray = new byte[firstByteArray.length + secondByteArray.length];
@@ -150,5 +174,18 @@ class SSF {
     System.arraycopy(secondByteArray, 0, resultArray, firstByteArray.length, secondByteArray.length);
 
     return resultArray;
+  }
+
+
+  private void generateSignedAndEncryptedFile(String outputFileName) throws IOException {
+      DataOutputStream outputFile = new DataOutputStream(new FileOutputStream(outputFileName));
+
+      outputFile.writeInt(encryptedSecretKey.length);
+      outputFile.write(encryptedSecretKey);
+      outputFile.writeInt(signatureBytesSecretKey.length);
+      outputFile.write(signatureBytesSecretKey);
+      outputFile.writeInt(encryptedAlgorithmParams.length);
+      outputFile.write(encryptedAlgorithmParams);
+      outputFile.write(encryptedInputFile);
   }
 }

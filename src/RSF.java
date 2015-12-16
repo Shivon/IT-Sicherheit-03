@@ -5,7 +5,6 @@ import java.security.*;
 import java.security.spec.*;
 
 class RSF {
-
 	private PrivateKey privateRSAKey;
 	private PublicKey publicRSAKey;
 	private AlgorithmParameters algParams;
@@ -134,8 +133,7 @@ class RSF {
 
 	public static void main(String[] args) throws Exception {
 		if (args.length != 4) {
-			System.out.println("Usage: java SSF privateKey.prv publicKey.pub inputFile outputFileName.ssf");
-			return;
+			System.out.println("Usage: java RSF yourPrivateKey.prv opponentsPublicKey.pub encryptedFileName.ssf decryptedFile");			return;
 		}
 		String encryptedFile = args[2];
 		String decryptedFile = args[3];
@@ -164,6 +162,4 @@ class RSF {
 			throw new Error("There is an invalid key", e);
 		}
 	}
-
-
 }

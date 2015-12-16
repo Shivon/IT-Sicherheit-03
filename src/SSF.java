@@ -16,7 +16,7 @@ class SSF {
 
   public static void main(String[] args) throws Exception {
     if (args.length != 4) {
-      System.out.println("Usage: java SSF privateKey.prv publicKey.pub inputFile outputFileName.ssf");
+      System.out.println("Usage: java SSF yourPrivateKey.prv opponentsPublicKey.pub originalFile encryptedFileName.ssf");
       return;
     }
 
@@ -28,7 +28,7 @@ class SSF {
     ssf.generateAESKey();
     ssf.signSecretKey();
     ssf.encryptSecretKey();
-    // generate encrypted input file
+    // generate encrypted version of original file
     ssf.encryptFile(args[2]);
     // generate encrypted output file with signature
     ssf.generateSignedAndEncryptedFile(args[3]);

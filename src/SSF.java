@@ -151,10 +151,11 @@ class SSF {
       byte[] buffer = new byte[16];
       int lengthRead;
       while ((lengthRead = inputStream.read(buffer)) > 0) {
-          // TODO: Check if doFinal not necessary
           encryptedInputFile = concat(encryptedInputFile, cipher.update(buffer, 0, lengthRead));
       }
 
+      // closes cipher
+      cipher.doFinal();
       inputStream.close();
       encryptedAlgorithmParams = cipher.getParameters().getEncoded();
     } catch (NoSuchAlgorithmException e) {

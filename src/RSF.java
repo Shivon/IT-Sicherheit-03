@@ -137,6 +137,8 @@ class RSF {
 			outputFile.write(cipher.update(buffer, 0, inputLength));
 		}
 
+		// this closes the cipher "stream"
+		cipher.doFinal();
 		inputStream.close();
 		outputFile.close();
 	}

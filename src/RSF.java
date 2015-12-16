@@ -8,7 +8,7 @@ class RSF {
 
 	private PrivateKey privateRSAKey;
 	private PublicKey publicRSAKey;
-	private AlgorithmParameters algparam;
+	private AlgorithmParameters algParams;
 	private String encryptedFile;
 	private String decryptedFile;
 	private byte[] secretKeyBytes;
@@ -74,7 +74,7 @@ class RSF {
 		int algorithmParamsLength = input.readInt();
 		byte[] algorithmParamsBytes = new byte[algorithmParamsLength];
 		input.readFully(algorithmParamsBytes);
-		AlgorithmParameters algParams = AlgorithmParameters.getInstance("AES");
+		algParams = AlgorithmParameters.getInstance("AES");
 		algParams.init(algorithmParamsBytes);
 		decryptKey(encryptedSecretKey);
 		System.out.println(encryptedSecretKey);
@@ -108,7 +108,7 @@ class RSF {
 			InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, IOException {
 		Cipher cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
 		SecretKeySpec keySpec = new SecretKeySpec(secretKeyBytes, "AES");
-		cipher.init(Cipher.DECRYPT_MODE, keySpec, algparam);
+		cipher.init(Cipher.DECRYPT_MODE, keySpec, algParams);
 		FileOutputStream outputFile;
 		InputStream inputStream = new DataInputStream(new FileInputStream(encryptedFile));
 		try {

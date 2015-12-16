@@ -130,9 +130,8 @@ class SSF {
     try {
       Cipher cipher = Cipher.getInstance("RSA");
       cipher.init(Cipher.ENCRYPT_MODE, publicRSAKey);
-//      byte[] firstEncryptedBlock = cipher.update(aesKey.getEncoded());
-//      encryptedSecretKey = concat(firstEncryptedBlock, cipher.doFinal(aesKey.getEncoded()));
-      encryptedSecretKey = cipher.update(aesKey.getEncoded());
+      byte[] firstEncryptedBlock = cipher.update(aesKey.getEncoded());
+      encryptedSecretKey = concat(firstEncryptedBlock, cipher.doFinal());
     } catch (NoSuchAlgorithmException e) {
       throw new Error("RSA not found for initializing cipher", e);
     } catch (InvalidKeyException e) {
@@ -141,19 +140,19 @@ class SSF {
   }
 
 
-  private void encryptFile(String inputFilePath) throws NoSuchPaddingException {
+  private void encryptFile(String inputFilePath) throws Exception {
     encryptedInputFile = new byte[0];
 
     try {
       FileInputStream inputStream = new FileInputStream(inputFilePath);
-      Cipher cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
+      Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
       cipher.init(Cipher.ENCRYPT_MODE, aesKey);
 
       byte[] buffer = new byte[16];
-      while ((inputStream.read(buffer)) > 0) {
-        byte[] encryptedInputPart = cipher.update(buffer);
-        // TODO: check if PKCS5Padding automatically fills up too short blocks
-        encryptedInputFile = concat(encryptedInputFile, encryptedInputPart);
+      int lengthRead;
+      while ((lengthRead = inputStream.read(buffer)) > 0) {
+          // TODO: Check if doFinal not necessary
+          encryptedInputFile = concat(encryptedInputFile, cipher.update(buffer, 0, lengthRead));
       }
 
       inputStream.close();
